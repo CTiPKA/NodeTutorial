@@ -3,9 +3,9 @@ body
     #objects
         table(border=1)
           if objects.length > 0
-              - each val, key in objects[0]
+              each val, key in objects[0]
                   th= key 
-          - each obj in objects
+          each obj in objects
             tr.obj
-              - each val, key in obj
+              each val, key in obj
                 td.key= val
