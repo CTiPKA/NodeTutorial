@@ -25,6 +25,7 @@ mongoClient.connect(function(err, mongoClient) {
 });
 
 app.use(express.static(path.join(__dirname, "public")));
+app.use(express.bodyParser());
 
 app.get("/:collection", function(req, res) {
   var params = req.params;
@@ -62,7 +63,59 @@ app.get("/:collection/:entity", function(req, res) {
   }
 });
 
-//wrong address error handing
+app.post("/:collection", function(req, res) {
+  var object = req.body;
+  var collection = req.params.collection;
+  collectionDriver.save(collection, object, function(err, docs) {
+    if (err) {
+      res.send(400, err);
+    } else {
+      res.send(201, docs);
+    }
+  });
+});
+
+app.put("/:collection/:entity", function(req, res) {
+  var params = req.params;
+  var entity = params.entity;
+  var collection = params.collection;
+  if (entity) {
+    collectionDriver.update(collection, req.body, entity, function(
+      error,
+      objs
+    ) {
+      if (error) {
+        res.send(400, error);
+      } else {
+        res.send(200, objs);
+      }
+    });
+  } else {
+    var error = { message: "Cannot PUT a whole collection" };
+    res.send(400, error);
+  }
+});
+
+app.delete("/:collection/:entity", function(req, res) {
+  //A
+  var params = req.params;
+  var entity = params.entity;
+  var collection = params.collection;
+  if (entity) {
+    collectionDriver.delete(collection, entity, function(error, objs) {
+      if (error) {
+        res.send(400, error);
+      } else {
+        res.send(200, objs);
+      }
+    });
+  } else {
+    var error = { message: "Cannot DELETE a whole collection" };
+    res.send(400, error);
+  }
+});
+
+// wrong address error handing
 app.use(function(req, res) {
   res.render("404", { url: req.url });
 });
