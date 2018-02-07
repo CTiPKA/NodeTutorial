@@ -4,6 +4,7 @@ var path = require('path');
 var MongoClient = require('mongodb').MongoClient;
 var Server = require('mongodb').Server;
 var CollectionDriver = require('./collectionDriver').CollectionDriver;
+var FileDriver = require('./fileDriver').FileDriver;
 
 var app = express();
 app.set('port', process.env.PORT || 3000);
@@ -12,6 +13,7 @@ app.set('view engine', 'pug');
 
 var mongoHost = 'localHost';
 var mongoPort = 27017;
+var fileDriver;
 var collectionDriver;
 
 var mongoClient = new MongoClient(new Server(mongoHost, mongoPort));
@@ -24,11 +26,25 @@ mongoClient.connect(function (err, mongoClient) {
     process.exit(1);
   }
   var db = mongoClient.db('MyDatabase');
+  fileDriver = new FileDriver(db);
   collectionDriver = new CollectionDriver(db);
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.bodyParser());
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/', function (req, res) {
+  res.send(
+    '<html><body><h1>Node.js + MongoDB + iOS app tutorial</h1></body></html>'
+  );
+});
+
+app.post('/files', function (req, res) {
+  fileDriver.handleUploadRequest(req, res);
+});
+app.get('/files/:id', function (req, res) {
+  fileDriver.handleGet(req, res);
+});
 
 app.get('/:collection', function (req, res) {
   var params = req.params;

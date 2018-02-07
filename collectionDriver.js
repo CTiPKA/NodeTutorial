@@ -7,8 +7,12 @@ var CollectionDriver = function (db) {
 CollectionDriver.prototype.getCollection = function (collectionName, callback) {
   this.db.collection(collectionName, function (error, theCollection) {
     if (error) {
+      console.log(
+        'Getting collection (' + collectionName + ') save error: ' + error
+      );
       callback(error);
     } else {
+      console.log('Found collection (' + collectionName + ').');
       callback(null, theCollection);
     }
   });
@@ -16,12 +20,20 @@ CollectionDriver.prototype.getCollection = function (collectionName, callback) {
 
 CollectionDriver.prototype.findAll = function (collectionName, callback) {
   this.getCollection(collectionName, function (error, theCollection) {
-    if (error) callback(error);
-    else {
+    if (error) {
+      callback(error);
+    } else {
       theCollection.find().toArray(function (error, results) {
         if (error) {
           callback(error);
         } else {
+          console.log(
+            'Found ' +
+              results.length +
+              ' objects for collection (' +
+              collectionName +
+              ').'
+          );
           callback(null, results);
         }
       });
@@ -41,8 +53,10 @@ CollectionDriver.prototype.get = function (collectionName, id, callback) {
       } else {
         theCollection.findOne({ _id: ObjectID(id) }, function (error, doc) {
           if (error) {
+            console.log('Getting object error -  ' + error + '.');
             callback(error);
           } else {
+            console.log('Found object (' + doc._id + ').');
             callback(null, doc);
           }
         });
@@ -54,10 +68,18 @@ CollectionDriver.prototype.get = function (collectionName, id, callback) {
 // save new object
 CollectionDriver.prototype.save = function (collectionName, obj, callback) {
   this.getCollection(collectionName, function (error, theCollection) {
-    if (error) callback(error);
-    else {
+    if (error) {
+      callback(error);
+    } else {
       obj.created_at = new Date();
       theCollection.insert(obj, function () {
+        console.log(
+          'Object(' +
+            obj._id +
+            ') saved to collection (' +
+            collectionName +
+            ') saved.'
+        );
         callback(null, obj);
       });
     }
@@ -72,14 +94,22 @@ CollectionDriver.prototype.update = function (
   callback
 ) {
   this.getCollection(collectionName, function (error, theCollection) {
-    if (error) callback(error);
-    else {
+    if (error) {
+      callback(error);
+    } else {
       obj._id = ObjectID(entityId);
       obj.updated_at = new Date();
       theCollection.save(obj, function (error, doc) {
         if (error) {
           callback(error);
         } else {
+          console.log(
+            'Object(' +
+              obj._id +
+              ') updated in collection (' +
+              collectionName +
+              ') saved.'
+          );
           callback(null, obj);
         }
       });
@@ -98,10 +128,16 @@ CollectionDriver.prototype.delete = function (
     if (error) callback(error);
     else {
       theCollection.remove({ _id: ObjectID(entityId) }, function (error, doc) {
-        // B
         if (error) {
           callback(error);
         } else {
+          console.log(
+            'Object(' +
+              doc._id +
+              ') deleted from collection (' +
+              collectionName +
+              ')'
+          );
           callback(null, doc);
         }
       });
