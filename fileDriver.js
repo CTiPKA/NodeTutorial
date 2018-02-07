@@ -1,5 +1,4 @@
-const path = require('path');
-
+var path = require('path');
 var ObjectID = require('mongodb').ObjectID;
 var fs = require('fs');
 
