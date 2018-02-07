@@ -1,57 +1,60 @@
-var http = require("http"),
-  express = require("express"),
-  path = require("path"),
-  MongoClient = require("mongodb").MongoClient,
-  Server = require("mongodb").Server,
-  CollectionDriver = require("./collectionDriver").CollectionDriver;
+var http = require('http');
+var express = require('express');
+var path = require('path');
+var MongoClient = require('mongodb').MongoClient;
+var Server = require('mongodb').Server;
+var CollectionDriver = require('./collectionDriver').CollectionDriver;
 
 var app = express();
-app.set("port", process.env.PORT || 3000);
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "pug");
+app.set('port', process.env.PORT || 3000);
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
 
-var mongoHost = "localHost";
+var mongoHost = 'localHost';
 var mongoPort = 27017;
 var collectionDriver;
 
 var mongoClient = new MongoClient(new Server(mongoHost, mongoPort));
-mongoClient.connect(function(err, mongoClient) {
-  if (!mongoClient) {
-    console.error("Error! Exiting... Must start MongoDB first");
+mongoClient.connect(function (err, mongoClient) {
+  if (err) {
+    console.error(err);
+    process.exit(1);
+  } else if (!mongoClient) {
+    console.error('Error! Exiting... Must start MongoDB first');
     process.exit(1);
   }
-  var db = mongoClient.db("MyDatabase");
+  var db = mongoClient.db('MyDatabase');
   collectionDriver = new CollectionDriver(db);
 });
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.bodyParser());
 
-app.get("/:collection", function(req, res) {
+app.get('/:collection', function (req, res) {
   var params = req.params;
-  collectionDriver.findAll(req.params.collection, function(error, objs) {
+  collectionDriver.findAll(params.collection, function (error, objs) {
     if (error) {
       res.send(400, error);
     } else {
-      if (req.accepts("html")) {
-        res.render("data", {
+      if (req.accepts('html')) {
+        res.render('data', {
           objects: objs,
-          collection: req.params.collection
+          collection: params.collection
         });
       } else {
-        res.set("Content-Type", "application/json");
+        res.set('Content-Type', 'application/json');
         res.send(200, objs);
       }
     }
   });
 });
 
-app.get("/:collection/:entity", function(req, res) {
+app.get('/:collection/:entity', function (req, res) {
   var params = req.params;
   var entity = params.entity;
   var collection = params.collection;
   if (entity) {
-    collectionDriver.get(collection, entity, function(error, objs) {
+    collectionDriver.get(collection, entity, function (error, objs) {
       if (error) {
         res.send(400, error);
       } else {
@@ -59,14 +62,14 @@ app.get("/:collection/:entity", function(req, res) {
       }
     });
   } else {
-    res.send(400, { error: "bad url", url: req.url });
+    res.send(400, { error: 'bad url', url: req.url });
   }
 });
 
-app.post("/:collection", function(req, res) {
+app.post('/:collection', function (req, res) {
   var object = req.body;
   var collection = req.params.collection;
-  collectionDriver.save(collection, object, function(err, docs) {
+  collectionDriver.save(collection, object, function (err, docs) {
     if (err) {
       res.send(400, err);
     } else {
@@ -75,12 +78,12 @@ app.post("/:collection", function(req, res) {
   });
 });
 
-app.put("/:collection/:entity", function(req, res) {
+app.put('/:collection/:entity', function (req, res) {
   var params = req.params;
   var entity = params.entity;
   var collection = params.collection;
   if (entity) {
-    collectionDriver.update(collection, req.body, entity, function(
+    collectionDriver.update(collection, req.body, entity, function (
       error,
       objs
     ) {
@@ -91,18 +94,18 @@ app.put("/:collection/:entity", function(req, res) {
       }
     });
   } else {
-    var error = { message: "Cannot PUT a whole collection" };
+    var error = { message: 'Cannot PUT a whole collection' };
     res.send(400, error);
   }
 });
 
-app.delete("/:collection/:entity", function(req, res) {
-  //A
+app.delete('/:collection/:entity', function (req, res) {
+  // A
   var params = req.params;
   var entity = params.entity;
   var collection = params.collection;
   if (entity) {
-    collectionDriver.delete(collection, entity, function(error, objs) {
+    collectionDriver.delete(collection, entity, function (error, objs) {
       if (error) {
         res.send(400, error);
       } else {
@@ -110,16 +113,16 @@ app.delete("/:collection/:entity", function(req, res) {
       }
     });
   } else {
-    var error = { message: "Cannot DELETE a whole collection" };
+    var error = { message: 'Cannot DELETE a whole collection' };
     res.send(400, error);
   }
 });
 
 // wrong address error handing
-app.use(function(req, res) {
-  res.render("404", { url: req.url });
+app.use(function (req, res) {
+  res.render('404', { url: req.url });
 });
 
-http.createServer(app).listen(app.get("port"), function() {
-  console.log("Express server listening on port " + app.get("port"));
+http.createServer(app).listen(app.get('port'), function () {
+  console.log('Express server listening on port ' + app.get('port'));
 });
