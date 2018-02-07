@@ -23,13 +23,12 @@ FileDriver.prototype.get = function (id, callback) {
     if (error) {
       callback(error);
     } else {
-      var checkForHexRegExp = new RegExp('^[0-9a-fA-F]{24}$'); // 2
+      var checkForHexRegExp = new RegExp('^[0-9a-fA-F]{24}$');
       if (!checkForHexRegExp.test(id)) {
         var errorCustom = { error: 'invalid id' };
         callback(errorCustom);
       } else {
         fileCollection.findOne({ _id: ObjectID(id) }, function (error, doc) {
-          // 3
           if (error) callback(error);
           else callback(null, doc);
         });
@@ -99,9 +98,11 @@ FileDriver.prototype.handleUploadRequest = function (req, res) {
       var filename = id + ext;
       var filePath = path.join(__dirname, '/uploads/', filename);
 
+      console.log('Trying to store file locally - ' + filePath);
       var writable = fs.createWriteStream(filePath);
       req.pipe(writable);
       req.on('end', function () {
+        console.log('File stored locally - ' + filePath);
         res.send(201, { _id: id });
       });
       writable.on('error', function (err) {
